@@ -1,79 +1,66 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Manual Zoom Mosaic</title>
+<title>REAL Mosaic</title>
 <style>
-  body {
-    margin: 0;
-    overflow: hidden;
-    background: black;
-  }
-  canvas {
-    display: block;
-  }
+body { margin:0; background:black; overflow:hidden; }
+canvas { display:block; }
 </style>
 </head>
 <body>
 
-<canvas id="canvas"></canvas>
+<canvas id="c"></canvas>
 
 <script>
-const canvas = document.getElementById("canvas");
+const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
-
-const tempCanvas = document.createElement("canvas");
-const tempCtx = tempCanvas.getContext("2d");
-
-tempCanvas.width = canvas.width;
-tempCanvas.height = canvas.height;
 
 const img = new Image();
 img.src = "./fairen5.jpeg";
 
 let zoom = 1;
 
-// 🖱️ ZOOM PAKAI SCROLL
-window.addEventListener("wheel", (e) => {
+// zoom manual
+window.addEventListener("wheel", e => {
   zoom += e.deltaY * -0.001;
   zoom = Math.max(1, Math.min(zoom, 5));
   draw();
 });
 
-img.onload = () => {
-  draw();
-};
+img.onload = () => draw();
 
 function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
   const w = img.width * zoom;
   const h = img.height * zoom;
 
-  const x = canvas.width / 2 - w / 2;
-  const y = canvas.height / 2 - h / 2;
+  const x = canvas.width/2 - w/2;
+  const y = canvas.height/2 - h/2;
 
-  ctx.drawImage(img, x, y, w, h);
-
-  // 🔥 kalau udah zoom → jadi mosaic
-  if (zoom > 2) {
-    drawMosaic(x, y, w, h);
+  // gambar normal kalau belum zoom
+  if (zoom < 2) {
+    ctx.drawImage(img, x, y, w, h);
+    return;
   }
-}
 
-function drawMosaic(x, y, w, h) {
-  tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
-  tempCtx.drawImage(img, x, y, w, h);
-
-  const imageData = tempCtx.getImageData(0, 0, canvas.width, canvas.height);
-  const data = imageData.data;
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+  // 🔥 MOSAIC LANGSUNG DARI GAMBAR (INI KUNCI)
   const step = 6;
+
+  // gambar ke temp canvas
+  const temp = document.createElement("canvas");
+  const tctx = temp.getContext("2d");
+
+  temp.width = canvas.width;
+  temp.height = canvas.height;
+
+  tctx.drawImage(img, x, y, w, h);
+
+  const data = tctx.getImageData(0,0,canvas.width,canvas.height).data;
 
   for (let py = 0; py < canvas.height; py += step) {
     for (let px = 0; px < canvas.width; px += step) {
@@ -81,11 +68,11 @@ function drawMosaic(x, y, w, h) {
       const i = (py * canvas.width + px) * 4;
 
       const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
+      const g = data[i+1];
+      const b = data[i+2];
 
       ctx.fillStyle = `rgb(${r},${g},${b})`;
-      ctx.font = "6px monospace";
+      ctx.font = "7px monospace";
 
       ctx.fillText("I LOVE YOU", px, py);
     }
