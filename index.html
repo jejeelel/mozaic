@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>TikTok Text Mosaic</title>
+<title>Manual Zoom Mosaic</title>
 <style>
   body {
     margin: 0;
-    background: black;
     overflow: hidden;
+    background: black;
   }
   canvas {
     display: block;
@@ -25,7 +25,6 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// canvas tambahan buat ambil pixel (INI KUNCI FIX)
 const tempCanvas = document.createElement("canvas");
 const tempCtx = tempCanvas.getContext("2d");
 
@@ -33,21 +32,39 @@ tempCanvas.width = canvas.width;
 tempCanvas.height = canvas.height;
 
 const img = new Image();
-img.src = "./fairen5.jpeg"; // SESUAIKAN NAMA FILE
+img.src = "./fairen5.jpeg";
 
 let zoom = 1;
 
+// 🖱️ ZOOM PAKAI SCROLL
+window.addEventListener("wheel", (e) => {
+  zoom += e.deltaY * -0.001;
+  zoom = Math.max(1, Math.min(zoom, 5));
+  draw();
+});
+
 img.onload = () => {
-  requestAnimationFrame(animate);
+  draw();
 };
 
-img.onerror = () => {
-  alert("Gambar gagal load! Cek nama file & ekstensi!");
-};
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-// 🔥 MOSAIC BENERAN (bukan overlay)
+  const w = img.width * zoom;
+  const h = img.height * zoom;
+
+  const x = canvas.width / 2 - w / 2;
+  const y = canvas.height / 2 - h / 2;
+
+  ctx.drawImage(img, x, y, w, h);
+
+  // 🔥 kalau udah zoom → jadi mosaic
+  if (zoom > 2) {
+    drawMosaic(x, y, w, h);
+  }
+}
+
 function drawMosaic(x, y, w, h) {
-  // gambar ke canvas sementara
   tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
   tempCtx.drawImage(img, x, y, w, h);
 
@@ -56,7 +73,7 @@ function drawMosaic(x, y, w, h) {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const step = 6; // makin kecil makin detail
+  const step = 6;
 
   for (let py = 0; py < canvas.height; py += step) {
     for (let px = 0; px < canvas.width; px += step) {
@@ -72,30 +89,6 @@ function drawMosaic(x, y, w, h) {
 
       ctx.fillText("I LOVE YOU", px, py);
     }
-  }
-}
-
-function animate() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  const w = img.width * zoom;
-  const h = img.height * zoom;
-
-  const x = canvas.width / 2 - w / 2;
-  const y = canvas.height / 2 - h / 2;
-
-  // tampilkan gambar dulu
-  ctx.drawImage(img, x, y, w, h);
-
-  // ubah jadi mosaic saat zoom
-  if (zoom > 1.5) {
-    drawMosaic(x, y, w, h);
-  }
-
-  zoom += 0.02;
-
-  if (zoom < 4) {
-    requestAnimationFrame(animate);
   }
 }
 </script>
