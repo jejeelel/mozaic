@@ -1,98 +1,85 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>I LOVE YOU Mosaic</title>
+<title>Text Portrait</title>
 <style>
 body {
   margin: 0;
   background: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
   overflow: hidden;
 }
-canvas {
-  display: block;
+
+#output {
+  line-height: 0.6;
+  font-family: monospace;
+  white-space: pre;
+  text-align: center;
+  color: white;
+  transform: scale(1);
+  transition: transform 0.3s;
 }
 </style>
 </head>
 <body>
 
-<canvas id="c"></canvas>
+<div id="output"></div>
 
 <script>
-const canvas = document.getElementById("c");
-const ctx = canvas.getContext("2d");
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
 const img = new Image();
-img.src = "./fairen5.jpeg"; // pastikan nama file sesuai
+img.src = "fairen5.jpeg"; // ganti sesuai nama file
 
-let zoom = 1;
-
-// zoom manual pakai scroll
-window.addEventListener("wheel", e => {
-  zoom += e.deltaY * -0.001;
-  zoom = Math.max(1, Math.min(zoom, 5));
-  draw();
-});
+const output = document.getElementById("output");
 
 img.onload = () => {
-  draw();
-};
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
 
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const width = 120; // semakin kecil = semakin detail
+  const ratio = img.height / img.width;
 
-  const w = img.width * zoom;
-  const h = img.height * zoom;
+  canvas.width = width;
+  canvas.height = width * ratio;
 
-  const x = canvas.width / 2 - w / 2;
-  const y = canvas.height / 2 - h / 2;
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-  // tampil normal kalau belum zoom
-  if (zoom < 2) {
-    ctx.drawImage(img, x, y, w, h);
-    return;
-  }
+  const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
 
-  // 🔥 SCALE DOWN BIAR KEBENTUK
-  const scale = 0.06;
-  const smallW = Math.floor(canvas.width * scale);
-  const smallH = Math.floor(canvas.height * scale);
+  let text = "";
+  const chars = "I LOVE YOU ";
 
-  const temp = document.createElement("canvas");
-  const tctx = temp.getContext("2d");
+  for (let y = 0; y < canvas.height; y++) {
+    for (let x = 0; x < canvas.width; x++) {
 
-  temp.width = smallW;
-  temp.height = smallH;
-
-  // gambar versi kecil
-  tctx.drawImage(img, x, y, w, h, 0, 0, smallW, smallH);
-
-  const data = tctx.getImageData(0, 0, smallW, smallH).data;
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // 🔥 RENDER TEKS
-  for (let py = 0; py < smallH; py++) {
-    for (let px = 0; px < smallW; px++) {
-
-      const i = (py * smallW + px) * 4;
+      const i = (y * canvas.width + x) * 4;
 
       const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
+      const g = data[i+1];
+      const b = data[i+2];
 
-      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      const brightness = (r + g + b) / 3;
 
-      // ukuran font otomatis sesuai scale
-      ctx.font = `${1/scale}px monospace`;
-
-      ctx.fillText("I LOVE YOU", px / scale, py / scale);
+      // mapping brightness ke karakter
+      const charIndex = Math.floor((brightness / 255) * (chars.length - 1));
+      text += chars[charIndex];
     }
+    text += "\n";
   }
-}
+
+  output.textContent = text;
+};
+
+// zoom manual pakai scroll
+window.addEventListener("wheel", (e) => {
+  let scale = parseFloat(output.style.transform.replace("scale(", "")) || 1;
+  scale += e.deltaY * -0.001;
+  scale = Math.max(0.5, Math.min(scale, 3));
+  output.style.transform = `scale(${scale})`;
+});
 </script>
 
 </body>
