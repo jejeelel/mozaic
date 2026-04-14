@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Text Portrait</title>
+<title>FIXED TEXT PORTRAIT</title>
 <style>
 body {
   margin: 0;
@@ -11,17 +11,13 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  overflow: hidden;
 }
 
 #output {
-  line-height: 0.6;
   font-family: monospace;
+  line-height: 0.6;
   white-space: pre;
-  text-align: center;
   color: white;
-  transform: scale(1);
-  transition: transform 0.3s;
 }
 </style>
 </head>
@@ -31,7 +27,7 @@ body {
 
 <script>
 const img = new Image();
-img.src = "fairen5.jpeg"; // ganti sesuai nama file
+img.src = "fairen5.jpeg";
 
 const output = document.getElementById("output");
 
@@ -39,7 +35,7 @@ img.onload = () => {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
 
-  const width = 120; // semakin kecil = semakin detail
+  const width = 120;
   const ratio = img.height / img.width;
 
   canvas.width = width;
@@ -50,7 +46,10 @@ img.onload = () => {
   const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
 
   let text = "";
-  const chars = "I LOVE YOU ";
+  const density = " .:-=+*#%@"; // ini kunci
+  const phrase = "I LOVE YOU";
+
+  let counter = 0;
 
   for (let y = 0; y < canvas.height; y++) {
     for (let x = 0; x < canvas.width; x++) {
@@ -63,23 +62,24 @@ img.onload = () => {
 
       const brightness = (r + g + b) / 3;
 
-      // mapping brightness ke karakter
-      const charIndex = Math.floor((brightness / 255) * (chars.length - 1));
-      text += chars[charIndex];
+      // mapping brightness ke density
+      const index = Math.floor((brightness / 255) * (density.length - 1));
+
+      // 🔥 mix density + "I LOVE YOU"
+      let char = density[index];
+
+      if (index < 5) {
+        char = phrase[counter % phrase.length];
+        counter++;
+      }
+
+      text += char;
     }
     text += "\n";
   }
 
   output.textContent = text;
 };
-
-// zoom manual pakai scroll
-window.addEventListener("wheel", (e) => {
-  let scale = parseFloat(output.style.transform.replace("scale(", "")) || 1;
-  scale += e.deltaY * -0.001;
-  scale = Math.max(0.5, Math.min(scale, 3));
-  output.style.transform = `scale(${scale})`;
-});
 </script>
 
 </body>
