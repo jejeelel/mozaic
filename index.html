@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>FIXED TEXT PORTRAIT</title>
+<title>REAL TEXT PORTRAIT</title>
 <style>
 body {
   margin: 0;
@@ -15,7 +15,7 @@ body {
 
 #output {
   font-family: monospace;
-  line-height: 0.6;
+  line-height: 0.55;
   white-space: pre;
   color: white;
 }
@@ -35,7 +35,7 @@ img.onload = () => {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
 
-  const width = 120;
+  const width = 150;
   const ratio = img.height / img.width;
 
   canvas.width = width;
@@ -46,9 +46,7 @@ img.onload = () => {
   const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
 
   let text = "";
-  const density = " .:-=+*#%@"; // ini kunci
   const phrase = "I LOVE YOU";
-
   let counter = 0;
 
   for (let y = 0; y < canvas.height; y++) {
@@ -62,18 +60,13 @@ img.onload = () => {
 
       const brightness = (r + g + b) / 3;
 
-      // mapping brightness ke density
-      const index = Math.floor((brightness / 255) * (density.length - 1));
-
-      // 🔥 mix density + "I LOVE YOU"
-      let char = density[index];
-
-      if (index < 5) {
-        char = phrase[counter % phrase.length];
+      // 🔥 filter biar cuma area gelap yang jadi teks
+      if (brightness < 200) {
+        text += phrase[counter % phrase.length];
         counter++;
+      } else {
+        text += " ";
       }
-
-      text += char;
     }
     text += "\n";
   }
